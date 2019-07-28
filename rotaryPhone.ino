@@ -1,59 +1,75 @@
+int A = 10;
+int B = 11;
+int pwm = 9;
 int startTimer = 0;
 unsigned long startTime = 0;
-int input = 50;
+int input = 2;
 int count = 0;
-int count2 = 0;
-int phoneVal = 0;
+String number = "";
+int hangUp = 7;
 
 void setup() {
   Serial.begin(9600);
+  pinMode(hangUp, INPUT);
   pinMode(input, INPUT);
+  pinMode(A, OUTPUT);
+  pinMode(B, OUTPUT);
+  pinMode(pwm, OUTPUT);
   Serial.println("HELLO");
-  attachInterrupt(digitalPinToInterrupt(20), interruptRising, RISING);
-
+  
 }
 
 void loop() {
-  phoneVal = analogRead(A0);
-  while(digitalRead(input) == HIGH){
-    if(count <= 10){
-      startTime = millis();
-      count++;
-      delay(60);
+
+  while (digitalRead(input) == HIGH) {
+    startTime = millis();
+    count++;
+    delay(55);
+  }
+
+  if ((millis() - startTime) > 500) {
+    if (count != 0) {
+      if (count >= 10) {
+        count = 0;
+      }
+      number += String(count);
+      count = 0;
+      Serial.read();
+      if (number.length() >= 8) {
+        Serial.println(number);
+        number = "";
+      }
+    }
+    startTime = 0;
+  }
+  if (digitalRead(hangUp) == HIGH) {
+    number = "";
+    Serial.println(76);
+    delay(200);
+  }
+  if (Serial.available() > 0) {
+    if (String(Serial.read()) == "ring"){
+      Serial.println("MODtaget");
+      ring();
+      delay(500);
+      ring();
     }
   }
-
-  if((millis()-startTime) > 500){
-      if(count!=0){
-        if (count == 10){
-          count = 0;
-        }
-        //Serial.println(count);
-        count = 0;
-        Serial.read();
-      }
-      startTime = 0;
-  }
-}
-
-void interruptRising(){
-  startTime = millis();
-  if(millis()-startTime < 60){
-    count2++;
-  }
   
-    if((millis()-startTime) > 500){
-      if(count2!=0){
-        if (count2 == 10){
-          count2 = 0;
-        }
-        Serial.println(count2);
-        count2 = 0;
-        Serial.read();
-      }
-      startTime = 0;
-  }
 }
 
+void ring(){
+  int startTime = millis();
+  while(millis-startTime < 1000){
+  digitalWrite(pwm, HIGH);
+  
+  digitalWrite(A, HIGH);
+  digitalWrite(B, LOW);
+  delay(40);
+  digitalWrite(A, LOW);
+  digitalWrite(B, HIGH);
+  delay(40);
+  }
+}
 
 
